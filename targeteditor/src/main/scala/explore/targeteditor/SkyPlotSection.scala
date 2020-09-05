@@ -23,6 +23,7 @@ import monocle.macros.Lenses
 import react.common.ReactProps
 import react.datepicker._
 import react.semanticui.modules.checkbox.Checkbox
+import lucuma.core.model.Semester
 
 final case class SkyPlotSection(
   coords: Coordinates
@@ -68,7 +69,13 @@ object SkyPlotSection {
     def render(props: Props, state: State) =
       <.div(GPPStyles.SkyPlotSection)(
         <.div(GPPStyles.SkyPlot)(
-          SkyPlot(state.site, props.coords, state.date, state.zoneId, 350)
+          // NightPlot(state.site, props.coords, state.date, state.zoneId, 350)
+          SemesterPlot(state.site,
+                       props.coords,
+                       Semester.fromLocalDate(state.date),
+                       state.zoneId,
+                       350
+          )
         ),
         <.div(GPPStyles.SkyPlotControls)(
           <.div(

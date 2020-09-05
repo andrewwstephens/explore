@@ -3,7 +3,6 @@
 
 package explore.targeteditor
 
-import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -39,26 +38,25 @@ import shapeless._
 
 import js.JSConverters._
 
-final case class SkyPlot(
+final case class NightPlot(
   site:   Site,
   coords: Coordinates,
   date:   LocalDate,
   zoneId: ZoneId,
   height: Int
-) extends ReactProps[SkyPlot](SkyPlot.component)
+) extends ReactProps[NightPlot](NightPlot.component)
 
-object SkyPlot {
-  type Props = SkyPlot
+object NightPlot {
+  type Props = NightPlot
 
   @Lenses
   case class State(shownSeries: HashSet[ElevationSeries] = HashSet(ElevationSeries.Elevation))
 
   implicit private val propsReuse: Reusability[Props] = Reusability.derive
-  // State doesn't trigger rerenders. We keep track of what is shown in case there is a
+  // State doesn't trigger rerenders. We keep track of what series are shown in case there is a
   // rerender due to a change of properties.
   implicit private val stateReuse: Reusability[State] = Reusability.always
 
-  private val PlotEvery: Duration   = Duration.ofMinutes(1)
   private val MillisPerHour: Double = 60 * 60 * 1000
 
   protected case class SeriesData(
@@ -104,29 +102,26 @@ object SkyPlot {
 
     def render(props: Props, state: State) = {
       val observingNight  = ObservingNight.fromSiteAndLocalDate(props.site, props.date)
-      val tbOfficialNight = observingNight.twilightBoundedUnsafe(TwilightType.Official)
       val tbNauticalNight = observingNight.twilightBoundedUnsafe(TwilightType.Nautical)
 
-      val start          = tbOfficialNight.start
-      val end            = tbOfficialNight.end
       val skyCalcResults =
-        SkyCalc.forInterval(props.site, start, end, PlotEvery, _ => props.coords)
-      val series         = skyCalcResults
-        .map {
-          case (instant, results) =>
-            val millisSinceEpoch = instant.toEpochMilli.toDouble
+        NightPlotCalc(props.date).samples(props.site, _ => props.coords).toMap.toList
+      val series         = skyCalcResults.map {
+        case (instant, resultsEval) =>
+          val millisSinceEpoch = instant.toEpochMilli.toDouble
+          val results          = resultsEval.value
 
-            def point(value: Double): Chart.Data =
-              PointOptionsObject()
-                .setX(millisSinceEpoch)
-                .setY(value)
+          def point(value: Double): Chart.Data =
+            PointOptionsObject()
+              .setX(millisSinceEpoch)
+              .setY(value)
 
-            point(results.altitude.toAngle.toSignedDoubleDegrees) ::
-              point(-results.totalSkyBrightness) ::
-              point(results.parallacticAngle.toSignedDoubleDegrees) ::
-              point(results.lunarElevation.toAngle.toSignedDoubleDegrees) ::
-              HNil
-        }
+          point(results.altitude.toAngle.toSignedDoubleDegrees) ::
+            point(-results.totalSkyBrightness) ::
+            point(results.parallacticAngle.toSignedDoubleDegrees) ::
+            point(results.lunarElevation.toAngle.toSignedDoubleDegrees) ::
+            HNil
+      }
 
       val seriesData = seriesDataGen.from(series.unzipN)
 
@@ -272,7 +267,7 @@ object SkyPlot {
 
       val (moonPhase, moonIllum) = skyCalcResults(
         skyCalcResults.length / 2
-      ).bimap(MoonCalc.approxPhase, _.lunarIlluminatedFraction.toDouble)
+      ).bimap(MoonCalc.approxPhase, _.value.lunarIlluminatedFraction.toDouble)
 
       <.span(
         <.div(GPPStyles.MoonPhase)(

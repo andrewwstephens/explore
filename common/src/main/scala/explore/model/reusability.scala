@@ -14,26 +14,29 @@ import lucuma.core.math.Coordinates
 import lucuma.ui.reusability._
 import react.common.Size
 import react.common.implicits._
+import lucuma.core.model.Semester
 
 /**
  * Reusability instances for model classes
  */
 object reusability {
-  implicit val statusReuse: Reusability[StreamingClientStatus]                                    = Reusability.derive
-  implicit val durationReuse: Reusability[Duration]                                               = Reusability.by(_.getSeconds)
-  implicit val siderealTargetReuse: Reusability[SiderealTarget]                                   = Reusability.byEq
   implicit val targetOptionsReuse: Reusability[TargetVisualOptions]                               = Reusability.derive
   implicit val expTargetReuse: Reusability[ExploreSiderealTarget]                                 = Reusability.derive
   implicit val constraintsReuse: Reusability[Constraints]                                         = Reusability.derive
   implicit val expObsReuse: Reusability[ExploreObservation]                                       = Reusability.derive
-  implicit val jsNumberReuse: Reusability[JsNumber]                                               = Reusability.byEq
   implicit val rootModelReuse: Reusability[RootModel]                                             = Reusability.derive
-  implicit def coordinatesReuse: Reusability[Coordinates]                                         = Reusability.byEq
-  implicit def sizeReuse: Reusability[Size]                                                       = Reusability.by(x => (x.height, x.width))
   implicit def focusedReuse: Reusability[Focused]                                                 = Reusability.derive
   implicit def idListReuse[Id: Reusability, A: Reusability]: Reusability[KeyedIndexedList[Id, A]] =
     Reusability.by(_.toList)
   implicit def targetSummaryReuse: Reusability[TargetSummary]                                     = Reusability.derive
   implicit def constraintsSummaryReuse: Reusability[ConstraintsSummary]                           = Reusability.derive
   implicit def obsSummaryReuse: Reusability[ObsSummary]                                           = Reusability.derive
+  // We should move the following to lucuma-ui
+  implicit val statusReuse: Reusability[StreamingClientStatus]                                    = Reusability.derive
+  implicit val durationReuse: Reusability[Duration]                                               = Reusability.by(_.getSeconds)
+  implicit val siderealTargetReuse: Reusability[SiderealTarget]                                   = Reusability.byEq
+  implicit val jsNumberReuse: Reusability[JsNumber]                                               = Reusability.byEq
+  implicit def coordinatesReuse: Reusability[Coordinates]                                         = Reusability.byEq
+  implicit def sizeReuse: Reusability[Size]                                                       = Reusability.by(x => (x.height, x.width))
+  implicit val semesterReuse: Reusability[Semester]                                               = Reusability.derive
 }
