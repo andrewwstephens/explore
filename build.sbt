@@ -142,6 +142,7 @@ lazy val targeteditor = project
     libraryDependencies ++=
       GeminiLocales.value ++
         LucumaCatalog.value ++
+        ReactAgGrid.value ++
         ReactAladin.value ++
         ReactDatepicker.value ++
         ReactHighcharts.value ++

@@ -41,6 +41,8 @@ import react.semanticui.collections.table.TableRow
 import react.semanticui.elements.button.Button
 import react.semanticui.elements.segment.Segment
 import react.semanticui.sizes._
+import reactST.agGridReact.components._
+import scalajs.js
 
 final case class MagnitudeForm(
   targetId:   Target.Id,
@@ -55,6 +57,18 @@ object MagnitudeForm {
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive
   implicit val stateReuse: Reusability[State] = Reusability.derive
+
+  trait RowData extends js.Object {
+    val make: String
+    val model: String
+    val year: Int
+  }
+  object RowData {
+    def apply(make: String, model: String, year: Int): RowData =
+      js.Dynamic
+        .literal("make" -> make, "model" -> model, "year" -> year)
+        .asInstanceOf[RowData]
+  }
 
   val component =
     ScalaComponent
@@ -72,6 +86,12 @@ object MagnitudeForm {
         val props = $.props
         val state = $.state
 
+        val rowData =
+          js.Array(RowData("Fender", "Stratocaster", 2019),
+                   RowData("Gibson", "Les Paul", 1958),
+                   RowData("Fender", "Telecaster", 1971)
+          )
+
         AppCtx.withCtx { implicit ctx =>
           val newBandView: Option[View[MagnitudeBand]] =
             state.newBand.map(band =>
@@ -84,6 +104,15 @@ object MagnitudeForm {
           React.Fragment(
             <.div(<.label("Magnitudes")),
             Segment(
+              <.div(
+                ^.cls := "ag-theme-alpine",
+                ^.height := "400px",
+                ^.width := "600px",
+                AgGridReact.rowData(rowData)(AgGridColumn.ColDef.field("make"),
+                                             AgGridColumn.ColDef.field("model"),
+                                             AgGridColumn.ColDef.field("year")
+                )
+              ),
               Table(compact = TableCompact.Very)(
                 TableBody(
                   props.magnitudes.get.toTagMod { magnitude =>
