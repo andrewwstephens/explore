@@ -14,7 +14,7 @@ import scala.reflect.runtime.universe._
 trait Reuse[A] {
   type B
 
-  val value: A
+  val value: () => A
 
   protected val reuseBy: B
 
@@ -24,7 +24,7 @@ trait Reuse[A] {
 }
 
 object Reuse {
-  implicit def toA[A](reuseFn: Reuse[A]): A = reuseFn.value
+  implicit def toA[A](reuseFn: Reuse[A]): A = reuseFn.value()
 
   implicit def reusability[A]: Reusability[Reuse[A]] =
     Reusability.apply((reuseA, reuseB) =>
@@ -35,11 +35,11 @@ object Reuse {
 
   def by[A, R](
     reuseByR: R
-  )(valueA:   A)(implicit typeTagR: TypeTag[R], reuseR: Reusability[R]): Reuse[A] =
+  )(valueA:   => A)(implicit typeTagR: TypeTag[R], reuseR: Reusability[R]): Reuse[A] =
     new Reuse[A] {
       type B = R
 
-      val value = valueA
+      val value = () => valueA
 
       protected val reuseBy = reuseByR
 
@@ -48,9 +48,9 @@ object Reuse {
       protected val reusability = reuseR
     }
 
-  def apply[A](value: A): Applied[A] = Applied(value)
+  def apply[A](value: => A): Applied[A] = new Applied(value)
 
-  case class Applied[A](valueA: A) {
+  class Applied[A](valueA: => A) {
     def by[R](reuseByR: R)(implicit typeTagR: TypeTag[R], reuseR: Reusability[R]): Reuse[A] =
       Reuse.by(reuseByR)(valueA)
   }
