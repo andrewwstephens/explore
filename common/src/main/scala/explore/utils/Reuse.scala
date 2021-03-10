@@ -9,34 +9,52 @@ import scala.reflect.runtime.universe._
 
 trait ReuseSyntax {
   implicit class AnyReuseOps[A]( /*val*/ a: A) { //extends AnyVal {
-    def always: Reuse[A] = ???
-    def never: Reuse[A]  = ???
-    def curry[R, S, B](
+    def always: Reuse[A] = Reuse.always(a)
+
+    def never: Reuse[A] = Reuse.never(a)
+  }
+
+  implicit class Fn2ReuseOps[R, S, B]( /*val*/ fn: (R, S) => B) { //extends AnyVal {
+    def curry(
       r:        R
     )(implicit
-      ev:       A =:= ((R, S) => B),
       typeTagR: TypeTag[R],
       reuseR:   Reusability[R]
-    ): Reuse[S => B] = ???
+    ): Reuse[S => B] = Reuse.curry(r)(fn)
+  }
+
+  implicit class Fn3ReuseOps[R, S, T, B]( /*val*/ fn: (R, S, T) => B) { //extends AnyVal {
+    def curry(
+      r:        R
+    )(implicit
+      typeTagR: TypeTag[R],
+      reuseR:   Reusability[R]
+    ): Reuse[(S, T) => B] = Reuse.curry(r)(fn)
+
+    def curry(
+      r:        R,
+      s:        S
+    )(implicit
+      typeTagR: TypeTag[(R, S)],
+      reuseR:   Reusability[(R, S)]
+    ): Reuse[T => B] = Reuse.curry(r, s)(fn)
   }
 }
 
 object ReuseSyntax extends ReuseSyntax
 
-/*
- * This is a fledgling idea for a mechanism to provide Reusability for functions.
- * It's not used yet, will develop in future PR.
- */
+// TODO Convert into Reusable ?? Is it possible?
+
 trait Reuse[A] {
   type B
 
   val value: () => A
 
-  protected val reuseBy: B // Do we need to store this if reusability function has it already?
+  protected val reuseBy: B // We need to store it to combine into tuples when currying.
 
   protected val typeTag: TypeTag[B]
 
-  protected val reusability: Reusability[B] // Turn into "B => Boolean"
+  protected val reusability: Reusability[B] // Turn into "(B, B) => Boolean" (will work in JVM)
 
   def andBy[C](c: C)(implicit typeTagC: TypeTag[C], reuseC: Reusability[C]): Reuse[A] = ???
 
@@ -49,7 +67,8 @@ object Reuse {
   implicit def reusability[A]: Reusability[Reuse[A]] =
     Reusability.apply((reuseA, reuseB) =>
       if (reuseA.typeTag == reuseB.typeTag)
-        reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B])
+        reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B]) &&
+        reuseB.reusability.test(reuseA.reuseBy.asInstanceOf[reuseB.B], reuseB.reuseBy)
       else false
     )
 
@@ -68,9 +87,9 @@ object Reuse {
       protected val reusability = reuseR
     }
 
-  def always[A](a: A): Reuse[A] = ???
+  def always[A](a: A): Reuse[A] = by(())(a)(implicitly[TypeTag[Unit]], Reusability.always)
 
-  def never[A](a: A): Reuse[A] = ???
+  def never[A](a: A): Reuse[A] = by(())(a)(implicitly[TypeTag[Unit]], Reusability.never)
 
   def apply[A](value: => A): Applied[A] = new Applied(value)
 
@@ -82,11 +101,6 @@ object Reuse {
 
     def always: Reuse[A] = Reuse.by(())(valueA)
   }
-
-  def curry[A, R, S, B](b: R)(
-    valueA:                => A
-  )(implicit ev:           A =:= ((R, S) => B), typeTagR: TypeTag[R], reuseR: Reusability[R]): Reuse[S => B] =
-    ???
 
   implicit class AppliedFn1Ops[A, R, S, B](aa: Applied[A])(implicit ev: A =:= ((R, S) => B)) {
     // Curry (R, S) => B into (fixed R) + (S => B)
@@ -135,7 +149,44 @@ object Reuse {
     }
   }
 
-  // TODO Convert into Reusable ?? Is it possible?
+  def curry[R](r: R): Curried1[R] = new Curried1(r)
+
+  def curry[R, S](r: R, s: S): Curried2[R, S] = new Curried2(r, s)
+
+  class Curried1[R](val r: R) {
+    def curry[S](s: S): Curried2[R, S] = new Curried2(r, s)
+  }
+
+  implicit class Curried1Ops[R](curried: Curried1[R]) {
+    // Curry (R, S) => B into (fixed R) + (S => B)
+    def apply[S, B](
+      fn:       (R, S) => B
+    )(implicit
+      typeTagR: TypeTag[R],
+      reuseR:   Reusability[R]
+    ): Reuse[S => B] =
+      Reuse.by(curried.r)(s => fn(curried.r, s))
+
+    // Curry (R, S, T) => B into (fixed R) + ((S, T) => B)
+    def apply[S, T, B](
+      fn:       (R, S, T) => B
+    )(implicit
+      typeTagR: TypeTag[R],
+      reuseR:   Reusability[R]
+    ): Reuse[(S, T) => B] =
+      Reuse.by(curried.r)((s, t) => fn(curried.r, s, t))
+  }
+
+  class Curried2[R, S](val r: R, val s: S) {
+    def apply[A, T, B](
+      valueA:   => A
+    )(implicit
+      ev:       A =:= ((R, S, T) => B),
+      typeTagR: TypeTag[(R, S)],
+      reuseR:   Reusability[(R, S)]
+    ): Reuse[T => B] =
+      Reuse.by((r, s))(t => ev(valueA)(r, s, t))
+  }
 
   object Examples {
     val propsUnits: String = "meters"
@@ -158,7 +209,8 @@ object Reuse {
 
     def format(units: String, q: Double): String = s"$q $units"
 
-    val cexample1 = Reuse(format _)("meters")
+    val cexample1                           = Reuse(format _)("meters")
+    val cexample1a: Reuse[Double => String] = cexample1
 
     def format2(units: String, prefix: String, q: Double): String =
       s"$prefix $q $units"
@@ -174,8 +226,14 @@ object Reuse {
 
     val cexample6 = Reuse.curry("meters")(format _)
 
+    val cexample7 = Reuse.curry("meters", "Length:")(format2 _)
+
     import ReuseSyntax._
 
-    val cexample7 = (format _).curry("meters")
+    val cexample8 = (format _).curry("meters")
+
+    val cexample9 = (format2 _).curry("meters").curry("Length:")
+
+    val cexample10 = (format2 _).curry("meters", "Length:")
   }
 }
