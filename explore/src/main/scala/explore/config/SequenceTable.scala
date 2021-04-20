@@ -14,6 +14,6 @@ object SequenceTable {
   val component =
     ScalaComponent
       .builder[Props]
-      .render(_ => <.div)
+      .render(_ => <.div("HELLO!"))
       .build
 }

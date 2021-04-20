@@ -126,12 +126,16 @@ object Render {
           subscriptions: List[GraphQLSubscription[F, _]],
           queue:         Queue[F, A]
         ): F[Unit] =
-          subscriptions
-            .map(_.stream)
-            .reduceLeft(_ merge _)
-            .evalTap(_ => queryAndEnqueue(queue))
-            .compile
-            .drain
+          subscriptions match {
+            case Nil => F.unit
+            case _   =>
+              subscriptions
+                .map(_.stream)
+                .reduceLeft(_ merge _)
+                .evalTap(_ => queryAndEnqueue(queue))
+                .compile
+                .drain
+          }
 
         // Once run, this effect has to be cancelled manually.
         def trackConnection(queue: Queue[F, A]): F[Unit] =

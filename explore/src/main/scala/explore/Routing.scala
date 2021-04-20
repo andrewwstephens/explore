@@ -27,6 +27,7 @@ import react.resizeDetector.ResizeDetector
 
 import scala.scalajs.LinkingInfo
 import scala.util.Random
+import explore.config.SequenceEditor
 
 sealed trait ElementItem  extends Product with Serializable
 case object IconsElement  extends ElementItem
@@ -110,7 +111,7 @@ object Routing {
           ) ~> renderP(
             targetTab
           )
-          | staticRoute("/configurations", ConfigurationsPage) ~> render(UnderConstruction())
+          | staticRoute("/configurations", ConfigurationsPage) ~> render(SequenceEditor())
           | staticRoute("/constraints", ConstraintsBasePage) ~> renderP(constraintSetTab)
           | dynamicRouteCT(
             ("/constraint" / id[ConstraintSet.Id]).xmapL(ConstraintsPage.csId)
