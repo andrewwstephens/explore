@@ -19,13 +19,13 @@ object SequenceStepsGQL {
             name
             config {
               __typename
-              ... on GmosNorthConfig {
-                instrument
-                plannedTime {
-                  total {
-                    milliseconds
-                  }
+              instrument
+              plannedTime {
+                total {
+                  milliseconds
                 }
+              }              
+              ... on GmosNorthConfig {
                 science {
                   atoms {
                     steps {
@@ -67,12 +67,6 @@ object SequenceStepsGQL {
                 }
               }
               ... on GmosSouthConfig {
-                instrument
-                plannedTime {
-                  total {
-                    milliseconds
-                  }
-                }
                 science {
                   atoms {
                     steps {
