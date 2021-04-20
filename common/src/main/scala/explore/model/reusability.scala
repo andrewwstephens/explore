@@ -35,4 +35,6 @@ object reusability {
     Reusability.byEq
   implicit val obsSummaryWithPointingAndConstraintsReuse
     : Reusability[ObsSummaryWithPointingAndConstraints]                               = Reusability.byEq
+  // Move to lucuma-ui
+  implicit val bigDecimalReuse: Reusability[BigDecimal]                               = Reusability.byEq
 }

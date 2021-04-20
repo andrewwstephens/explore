@@ -3,7 +3,6 @@
 
 package explore.tabs
 
-import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
 import crystal.ViewF
@@ -304,7 +303,7 @@ object ObsTabContents {
                   ](
                     TargetEditQuery.query(targetId),
                     _.target,
-                    NonEmptyList.of(TargetEditSubscription.subscribe[IO](targetId))
+                    List(TargetEditSubscription.subscribe[IO](targetId))
                   )((targetRenderFn _).reusable(targetId))
                     .withKey(s"target-$targetId")
                 }

@@ -3,7 +3,6 @@
 
 package explore.common
 
-import cats.data.NonEmptyList
 import cats.effect.IO
 import clue.data.Input
 import explore.AppCtx
@@ -95,7 +94,7 @@ object ConstraintSetObsQueries {
         LiveQueryRenderMod[ObservationDB, ConstraintSetsObsQuery.Data, ConstraintSetsWithObs](
           ConstraintSetsObsQuery.query(),
           ConstraintSetsObsQuery.Data.asConstraintSetsWithObs.get,
-          NonEmptyList.of(
+          List(
             ConstraintSetEditSubscription.subscribe[IO](),
             ObsQueriesGQL.ProgramObservationsEditSubscription.subscribe[IO]()
           )
