@@ -35,4 +35,8 @@ trait ObservationDB {
     type SkyBackground   = lucuma.core.enum.SkyBackground
     type WaterVapor      = lucuma.core.enum.WaterVapor
   }
+
+  object Types {
+    type Duration = java.time.Duration
+  }
 }

@@ -62,10 +62,14 @@ type Asterism {
 
 # Asterisms in the current page
 type AsterismConnection {
+  # The nodes in all the edges from the current page
   nodes: [Asterism!]!
 
   # Edges in the current page
   edges: [AsterismEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
 
   # Paging information
   pageInfo: PageInfo!
@@ -234,10 +238,14 @@ type ConstraintSet {
 
 # Constraint Sets in the current page
 type ConstraintSetConnection {
+  # The nodes in all the edges from the current page
   nodes: [ConstraintSet!]!
 
   # Edges in the current page
   edges: [ContraintSetEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
 
   # Paging information
   pageInfo: PageInfo!
@@ -860,21 +868,9 @@ type GmosNodAndShuffle {
 # GmosNorth atom, a collection of steps that should be executed in their entirety
 type GmosNorthAtom {
   # Individual steps that comprise the atom
-  steps: [GmosNorthBreakpointStep!]!
+  steps: [GmosNorthStep!]!
 
   # Time estimate for this atom's execution, the sum of each step's time.
-  time: StepTime!
-}
-
-# GmosNorth step with potential breakpoint
-type GmosNorthBreakpointStep {
-  # Whether to pause before the execution of this step
-  breakpoint: Breakpoint!
-
-  # The sequence step itself
-  step: GmosNorthStep!
-
-  # Time estimate for this step's execution
   time: StepTime!
 }
 
@@ -1142,16 +1138,22 @@ type GmosNorthStaticConfig {
   nodAndShuffle: GmosNodAndShuffle
 }
 
-# Step (bias, dark, science, etc.)
-type GmosNorthStep {
+# GmosNorth step with potential breakpoint
+type GmosNorthStep implements Step {
+  # Instrument configuration for this step
+  instrumentConfig: GmosNorthDynamic!
+
+  # Whether to pause before the execution of this step
+  breakpoint: Breakpoint!
+
   # Step type
   stepType: StepType!
 
-  # Instrument configuration
-  instrumentConfig: GmosNorthDynamic!
-
-  # Step configuration
+  # The sequence step itself
   stepConfig: StepConfig!
+
+  # Time estimate for this step's execution
+  time: StepTime!
 }
 
 # GMOS Region Of Interest
@@ -1181,21 +1183,9 @@ enum GmosRoi {
 # GmosSouth atom, a collection of steps that should be executed in their entirety
 type GmosSouthAtom {
   # Individual steps that comprise the atom
-  steps: [GmosSouthBreakpointStep!]!
+  steps: [GmosSouthStep!]!
 
   # Time estimate for this atom's execution, the sum of each step's time.
-  time: StepTime!
-}
-
-# GmosSouth step with potential breakpoint
-type GmosSouthBreakpointStep {
-  # Whether to pause before the execution of this step
-  breakpoint: Breakpoint!
-
-  # The sequence step itself
-  step: GmosSouthStep!
-
-  # Time estimate for this step's execution
   time: StepTime!
 }
 
@@ -1472,16 +1462,22 @@ type GmosSouthStaticConfig {
   nodAndShuffle: GmosNodAndShuffle
 }
 
-# Step (bias, dark, science, etc.)
-type GmosSouthStep {
+# GmosSouth step with potential breakpoint
+type GmosSouthStep implements Step {
+  # Instrument configuration for this step
+  instrumentConfig: GmosSouthDynamic!
+
+  # Whether to pause before the execution of this step
+  breakpoint: Breakpoint!
+
   # Step type
   stepType: StepType!
 
-  # Instrument configuration
-  instrumentConfig: GmosSouthDynamic!
-
-  # Step configuration
+  # The sequence step itself
   stepConfig: StepConfig!
+
+  # Time estimate for this step's execution
+  time: StepTime!
 }
 
 # GMOS X Binning
@@ -1881,10 +1877,14 @@ type Observation {
 
 # Matching observations
 type ObservationConnection {
+  # The nodes in all the edges from the current page
   nodes: [Observation!]!
 
   # Edges in the current page
   edges: [ObservationEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
 
   # Paging information
   pageInfo: PageInfo!
@@ -2103,10 +2103,14 @@ type Program {
 
 # Programs in the current page
 type ProgramConnection {
+  # The nodes in all the edges from the current page
   nodes: [Program!]!
 
   # Edges in the current page
   edges: [ProgramEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
 
   # Paging information
   pageInfo: PageInfo!
@@ -2477,7 +2481,22 @@ enum SkyBackground {
   BRIGHT
 }
 
-# Step (bias, dark, science, etc.)
+# Sequence step
+interface Step {
+  # Whether to pause before the execution of this step
+  breakpoint: Breakpoint!
+
+  # Step type
+  stepType: StepType!
+
+  # The sequence step itself
+  stepConfig: StepConfig!
+
+  # Time estimate for this step's execution
+  time: StepTime!
+}
+
+# Step (bias, dark, gcal, science, etc.)
 interface StepConfig {
   # Step type
   stepType: StepType!
@@ -2658,10 +2677,14 @@ input TargetAsterismLinks {
 
 # Targets in the current page
 type TargetConnection {
+  # The nodes in all the edges from the current page
   nodes: [Target!]!
 
   # Edges in the current page
   edges: [TargetEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
 
   # Paging information
   pageInfo: PageInfo!

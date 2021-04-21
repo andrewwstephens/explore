@@ -8,6 +8,7 @@ import explore.common.SequenceStepsGQL.SequenceSteps.Data.Observations.Nodes.Con
 import reactST.reactTable.TableMaker
 
 import scalajs.js.JSConverters._
+import react.semanticui.elements.segment.Segment
 
 final case class SequenceTable(config: Config)
     extends ReactProps[SequenceTable](SequenceTable.component)
@@ -24,19 +25,18 @@ object SequenceTable {
 
         val columns = tableMaker.columnArray(
           tableMaker
-            .accessorColumn("stepType", _.step.stepType.toString)
+            .accessorColumn("stepType", _.stepType.toString)
             .setHeader("Step Type"),
           tableMaker
-            .accessorColumn("time", _.time.toString)
+            .accessorColumn("time", _.time.total.duration.toString)
             .setHeader("Time")
         )
 
         val options = tableMaker
-          .options(rowIdFn = _.time.toString, columns = columns)
+          .options(rowIdFn = _.time.total.duration.toString, columns = columns)
         // .setInitialStateFull(tableState)
 
-        <.div(
-          "HELLO!",
+        Segment()(
           props.config match {
             case Config.GmosSouthConfig(_, _, science) =>
               tableMaker.makeTable(

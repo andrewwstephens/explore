@@ -3,7 +3,6 @@ package explore.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import explore.schemas.ObservationDB
-// gql: import explore.model.reusability._
 // gql: import io.circe.refined._
 // gql: import lucuma.ui.reusability._
 
@@ -22,44 +21,42 @@ object SequenceStepsGQL {
               instrument
               plannedTime {
                 total {
-                  milliseconds
+                  microseconds
                 }
               }              
               ... on GmosNorthConfig {
                 science {
                   atoms {
                     steps {
-                      step {
-                        stepType
-                        instrumentConfig {
-                          exposure {
-                            milliseconds
-                          }
+                      stepType
+                      instrumentConfig {
+                        exposure {
+                          microseconds
                         }
-                        stepConfig {
-                          __typename
-                          ... on Gcal {
-                            continuum
-                            arcs
-                            filter
-                            diffuser
-                            shutter
-                          }
-                          ... on Science {
-                            offset {
-                              p {
-                                microarcseconds
-                              }
-                              q {
-                                microarcseconds
-                              }
+                      }
+                      stepConfig {
+                        __typename
+                        ... on Gcal {
+                          continuum
+                          arcs
+                          filter
+                          diffuser
+                          shutter
+                        }
+                        ... on Science {
+                          offset {
+                            p {
+                              microarcseconds
+                            }
+                            q {
+                              microarcseconds
                             }
                           }
                         }
                       }
                       time {
                         total {
-                          milliseconds
+                          microseconds
                         }
                       }
                     }
@@ -70,37 +67,35 @@ object SequenceStepsGQL {
                 science {
                   atoms {
                     steps {
-                      step {
-                        stepType
-                        instrumentConfig {
-                          exposure {
-                            milliseconds
-                          }
+                      stepType
+                      instrumentConfig {
+                        exposure {
+                          microseconds
                         }
-                        stepConfig {
-                          __typename
-                          ... on Gcal {
-                            continuum
-                            arcs
-                            filter
-                            diffuser
-                            shutter
-                          }                    
-                          ... on Science {
-                            offset {
-                              p {
-                                microarcseconds
-                              }
-                              q {
-                                microarcseconds
-                              }
+                      }
+                      stepConfig {
+                        __typename
+                        ... on Gcal {
+                          continuum
+                          arcs
+                          filter
+                          diffuser
+                          shutter
+                        }                    
+                        ... on Science {
+                          offset {
+                            p {
+                              microarcseconds
+                            }
+                            q {
+                              microarcseconds
                             }
                           }
                         }
                       }
                       time {
                         total {
-                          milliseconds
+                          microseconds
                         }
                       }
                     }
@@ -112,5 +107,45 @@ object SequenceStepsGQL {
         }
       }
     """
+
+    object Data {
+      object Observations {
+        object Nodes {
+          object Config {
+            object GmosNorthConfig {
+              object Science {
+                object Atoms {
+                  object Steps {
+                    object StepType
+                    object InstrumentConfig {
+                      trait Exposure extends Durationµs
+                    }
+                    object Time             {
+                      trait Total extends Durationµs
+                    }
+                  }
+                }
+              }
+            }
+
+            object GmosSouthConfig {
+              object Science {
+                object Atoms {
+                  object Steps {
+                    object StepType
+                    object InstrumentConfig {
+                      trait Exposure extends Durationµs
+                    }
+                    object Time             {
+                      trait Total extends Durationµs
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
