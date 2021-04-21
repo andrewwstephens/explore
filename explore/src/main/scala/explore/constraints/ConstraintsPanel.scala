@@ -145,6 +145,7 @@ object ConstraintsPanel {
           FormInputEV(
             id = "name",
             label = "Name",
+            clazz = ExploreStyles.ConstraintsNameField,
             value = nameView,
             validFormat = ValidFormatInput.nonEmptyValidFormat,
             errorClazz = ExploreStyles.InputErrorTooltip,

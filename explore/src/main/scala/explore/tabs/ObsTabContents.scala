@@ -17,6 +17,7 @@ import explore.common.UserPreferencesQueries._
 import explore.common.UserPreferencesQueriesGQL._
 import explore.components.Tile
 import explore.components.TileButton
+// import explore.components.TileControl
 import explore.components.graphql.LiveQueryRenderMod
 import explore.components.ui.ExploreStyles
 import explore.implicits._
@@ -50,6 +51,7 @@ import react.semanticui.elements.button.Button.ButtonProps
 import react.semanticui.sizes._
 
 import scala.concurrent.duration._
+// import explore.constraints.ConstraintSetEditor
 
 final case class ObsTabContents(
   userId:           ViewOpt[User.Id],
@@ -62,21 +64,37 @@ final case class ObsTabContents(
 }
 
 object ObsTabContents {
-  val NotesIndex: NonNegInt     = 0
-  val NotesMaxHeight: NonNegInt = 3
-  val NotesMinHeight: NonNegInt = 1
+  val NotesIndex: NonNegInt           = 0
+  val NotesMaxHeight: NonNegInt       = 3
+  val NotesMinHeight: NonNegInt       = 1
+  val TargetMinHeight: NonNegInt      = 12
+  val ConstraintsMaxHeight: NonNegInt = 3
+  val ConstraintsMinHeight: NonNegInt = 1
+  val DefaultWidth: NonNegInt         = 12
 
   private val layoutLarge: Layout = Layout(
     List(
       LayoutItem(x = 0,
                  y = 0,
-                 w = 12,
+                 w = DefaultWidth.value,
                  h = NotesMaxHeight.value,
                  i = "notes",
                  isResizable = false,
                  resizeHandles = List("")
       ),
-      LayoutItem(x = 0, y = NotesMaxHeight.value, w = 12, h = 12, i = "target")
+      LayoutItem(x = 0,
+                 y = NotesMaxHeight.value,
+                 w = DefaultWidth.value,
+                 h = TargetMinHeight.value,
+                 i = "target"
+      ),
+      LayoutItem(x = 0,
+                 y = NotesMaxHeight.value + TargetMinHeight.value,
+                 w = DefaultWidth.value,
+                 h = 4,
+                 i = "constraints",
+                 isResizable = false
+      )
     )
   )
 
@@ -84,13 +102,25 @@ object ObsTabContents {
     List(
       LayoutItem(x = 0,
                  y = 0,
-                 w = 12,
+                 w = DefaultWidth.value,
                  h = NotesMaxHeight.value,
                  i = "notes",
                  isResizable = false,
                  resizeHandles = List("")
       ),
-      LayoutItem(x = 0, y = NotesMaxHeight.value, w = 12, h = 12, i = "target")
+      LayoutItem(x = 0,
+                 y = NotesMaxHeight.value,
+                 w = DefaultWidth.value,
+                 h = TargetMinHeight.value,
+                 i = "target"
+      ),
+      LayoutItem(x = 0,
+                 y = NotesMaxHeight.value + TargetMinHeight.value,
+                 w = DefaultWidth.value,
+                 h = 4,
+                 i = "constraints",
+                 isResizable = false
+      )
     )
   )
 
@@ -98,13 +128,25 @@ object ObsTabContents {
     List(
       LayoutItem(x = 0,
                  y = 0,
-                 w = 12,
+                 w = DefaultWidth.value,
                  h = NotesMaxHeight.value,
                  i = "notes",
                  isResizable = false,
                  resizeHandles = List("")
       ),
-      LayoutItem(x = 0, y = NotesMaxHeight.value, w = 12, h = 12, i = "target")
+      LayoutItem(x = 0,
+                 y = NotesMaxHeight.value,
+                 w = DefaultWidth.value,
+                 h = TargetMinHeight.value,
+                 i = "target"
+      ),
+      LayoutItem(x = 0,
+                 y = NotesMaxHeight.value + TargetMinHeight.value,
+                 w = DefaultWidth.value,
+                 h = 4,
+                 i = "constraints",
+                 isResizable = false
+      )
     )
   )
 
@@ -217,7 +259,10 @@ object ObsTabContents {
           observations.get.getElement(obsId)
         }.flatten
 
-      val targetId = obsSummaryOpt.collect {
+      // val constrainstSetId    = obsSummaryOpt.flatMap(_.constraints.map(_.id))
+      // val constrainstObsCount = obsSummaryOpt.flatMap(_.constraints.map(_.obsCount))
+      // println(constrainstObsCount)
+      val targetId            = obsSummaryOpt.collect {
         case ObsSummaryWithPointingAndConstraints(_,
                                                   Some(Pointing.PointingTarget(tid, _)),
                                                   _,
